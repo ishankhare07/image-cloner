@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -29,6 +30,28 @@ func (r *DeploymentReconciler) Reconcile(ctx context.Context, req reconcile.Requ
 	}
 
 	reqLogger.Info("event received for deploy", "info", req.NamespacedName)
+
+	instance := &appsv1.Deployment{}
+	err := r.client.Get(context.Background(), req.NamespacedName, instance)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			// deployment might have been delete by now
+			return ctrl.Result{}, nil
+		}
+		reqLogger.Error(err, "unable to get the deployment instance")
+		return ctrl.Result{}, err
+	}
+
+	reqLogger.Info("deploy status details", "status", instance.Status)
+
+	reqLogger.Info("images in deploy")
+	for _, container := range instance.Spec.Template.Spec.InitContainers {
+		reqLogger.Info("init container", "image", container.Image)
+	}
+
+	for _, container := range instance.Spec.Template.Spec.Containers {
+		reqLogger.Info("containers", "image", container.Image)
+	}
 
 	return ctrl.Result{}, nil
 }

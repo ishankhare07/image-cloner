@@ -8,7 +8,7 @@ import (
 	"github.com/google/go-containerregistry/pkg/v1/remote/transport"
 )
 
-type Interface interface {
+type Client interface {
 	GetImage(imgName string) (v1.Image, error)
 	ImageExists(imageName string) (bool, name.Reference, error)
 	Upload(img v1.Image, imageName string) error
@@ -81,7 +81,7 @@ func WithAuth(cfg authn.AuthConfig) RegistryClientOption {
 	}
 }
 
-func NewRegistryClient(registryClientOptions ...RegistryClientOption) Interface {
+func NewRegistryClient(registryClientOptions ...RegistryClientOption) Client {
 	const (
 		defaultName = ""
 	)
