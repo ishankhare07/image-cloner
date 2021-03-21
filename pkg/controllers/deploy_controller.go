@@ -46,13 +46,18 @@ func (r *DeploymentReconciler) Reconcile(ctx context.Context, req reconcile.Requ
 
 	reqLogger.Info("images in deploy")
 
-	var updated bool
-	updated, result, err := Cloner(reqLogger, instance.Spec.Template.Spec.Containers)
+	var initContainersUpdated, containersUpdated bool
+	initContainersUpdated, result, err := Cloner(reqLogger, instance.Spec.Template.Spec.InitContainers)
 	if err != nil {
 		return result, err
 	}
 
-	if updated {
+	containersUpdated, result, err = Cloner(reqLogger, instance.Spec.Template.Spec.Containers)
+	if err != nil {
+		return result, err
+	}
+
+	if initContainersUpdated || containersUpdated {
 		// a change was made in the deploy, hence update the object
 		err := r.client.Update(ctx, instance)
 		if err != nil {
