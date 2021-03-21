@@ -6,9 +6,12 @@ import (
 )
 
 var PrivateRegistryClient registry.Client
+var UpstreamRegistryPool registry.ClientPool
 
 func init() {
 	PrivateRegistryClient = registry.NewRegistryClient(
 		registry.WithName(config.PrivateRepoConfig.URI),
 		registry.WithAuth(config.PrivateRepoConfig.ToAuthConfig()))
+
+	UpstreamRegistryPool = make(registry.ClientPool)
 }

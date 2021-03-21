@@ -17,7 +17,7 @@ type Client interface {
 	GetImage(imgName string) (v1.Image, error)
 	ImageExists(repoName string) (bool, name.Reference, error)
 	Upload(img v1.Image, imageName string) (bool, error)
-	GetName() string
+	GetRegistryName() string
 }
 
 type RegistryClientOption func(*registryClient)
@@ -27,7 +27,7 @@ type registryClient struct {
 	authenticator authn.Authenticator
 }
 
-func (r *registryClient) GetName() string {
+func (r *registryClient) GetRegistryName() string {
 	return r.registryName
 }
 

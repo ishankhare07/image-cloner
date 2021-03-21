@@ -45,12 +45,20 @@ func (r *DeploymentReconciler) Reconcile(ctx context.Context, req reconcile.Requ
 	reqLogger.Info("deploy status details", "status", instance.Status)
 
 	reqLogger.Info("images in deploy")
-	for _, container := range instance.Spec.Template.Spec.InitContainers {
-		reqLogger.Info("init container", "image", container.Image)
+
+	var updated bool
+	updated, result, err := Cloner(reqLogger, instance.Spec.Template.Spec.Containers)
+	if err != nil {
+		return result, err
 	}
 
-	for _, container := range instance.Spec.Template.Spec.Containers {
-		reqLogger.Info("containers", "image", container.Image)
+	if updated {
+		// a change was made in the deploy, hence update the object
+		err := r.client.Update(ctx, instance)
+		if err != nil {
+			reqLogger.Error(err, "cannot update deploy")
+			return ctrl.Result{}, err
+		}
 	}
 
 	return ctrl.Result{}, nil
