@@ -21,8 +21,8 @@ type DeploymentReconciler struct {
 // Reconciler performs a full reconciliation for the object referred to by the Request.
 // The Controller will requeue the Request to be processed again if an error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
-func (r *DeploymentReconciler) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) {
-	reqLogger := r.log.WithValues("deploy", req.NamespacedName)
+func (d *DeploymentReconciler) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) {
+	reqLogger := d.log.WithValues("deploy", req.NamespacedName)
 
 	if req.Namespace == "kube-system" {
 		// ignore
@@ -32,7 +32,7 @@ func (r *DeploymentReconciler) Reconcile(ctx context.Context, req reconcile.Requ
 	reqLogger.Info("event received for deploy", "info", req.NamespacedName)
 
 	instance := &appsv1.Deployment{}
-	err := r.client.Get(ctx, req.NamespacedName, instance)
+	err := d.client.Get(ctx, req.NamespacedName, instance)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// deployment might have been delete by now
@@ -59,7 +59,7 @@ func (r *DeploymentReconciler) Reconcile(ctx context.Context, req reconcile.Requ
 
 	if initContainersUpdated || containersUpdated {
 		// a change was made in the deploy, hence update the object
-		err := r.client.Update(ctx, instance)
+		err := d.client.Update(ctx, instance)
 		if err != nil {
 			reqLogger.Error(err, "cannot update deploy")
 			return ctrl.Result{}, err
@@ -69,12 +69,12 @@ func (r *DeploymentReconciler) Reconcile(ctx context.Context, req reconcile.Requ
 	return ctrl.Result{}, nil
 }
 
-func (r *DeploymentReconciler) RegisterWithManager(mgr ctrl.Manager) error {
-	r.client = mgr.GetClient()
-	r.log = ctrl.Log.WithName("controller").WithName("deployment")
-	r.scheme = mgr.GetScheme()
+func (d *DeploymentReconciler) RegisterWithManager(mgr ctrl.Manager) error {
+	d.client = mgr.GetClient()
+	d.log = ctrl.Log.WithName("controller").WithName("deployment")
+	d.scheme = mgr.GetScheme()
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&appsv1.Deployment{}).
-		Complete(r)
+		Complete(d)
 }
