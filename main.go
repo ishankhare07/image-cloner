@@ -31,6 +31,11 @@ func main() {
 		os.Exit(1)
 	}
 
+	if err = (&controllers.DaemonSetReconciler{}).RegisterWithManager(mgr); err != nil {
+		entryLog.Error(err, "unable to create controller", "controllers", "daemonset")
+		os.Exit(1)
+	}
+
 	entryLog.Info("Starting manager")
 	if err = mgr.Start(ctrl.SetupSignalHandler()); err != nil {
 		entryLog.Error(err, "problem starting manager")
