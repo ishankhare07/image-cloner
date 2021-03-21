@@ -32,7 +32,7 @@ func (r *DeploymentReconciler) Reconcile(ctx context.Context, req reconcile.Requ
 	reqLogger.Info("event received for deploy", "info", req.NamespacedName)
 
 	instance := &appsv1.Deployment{}
-	err := r.client.Get(context.Background(), req.NamespacedName, instance)
+	err := r.client.Get(ctx, req.NamespacedName, instance)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// deployment might have been delete by now
