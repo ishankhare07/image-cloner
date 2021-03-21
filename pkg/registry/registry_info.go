@@ -1,4 +1,4 @@
-package utils
+package registry
 
 import (
 	"fmt"
@@ -10,12 +10,6 @@ const (
 	OrgRepo            = 2
 	ThirdPartyRegistry = 3
 )
-
-func ExtractImageName(repoName string) string {
-	splits := strings.Split(repoName, "/")
-
-	return splits[len(splits)-1]
-}
 
 type RegistryInfo struct {
 	registryName string
