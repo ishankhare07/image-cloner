@@ -8,10 +8,16 @@ import (
 	"github.com/google/go-containerregistry/pkg/v1/remote/transport"
 )
 
+// ClientPool acts as a pool of clients to a given
+// repo. These can be reused to fetch images from
+// those repos.
+type ClientPool map[string]Client
+
 type Client interface {
 	GetImage(imgName string) (v1.Image, error)
-	ImageExists(imageName string) (bool, name.Reference, error)
-	Upload(img v1.Image, imageName string) error
+	ImageExists(repoName string) (bool, name.Reference, error)
+	Upload(img v1.Image, imageName string) (bool, error)
+	GetName() string
 }
 
 type RegistryClientOption func(*registryClient)
@@ -19,6 +25,10 @@ type RegistryClientOption func(*registryClient)
 type registryClient struct {
 	registryName  string
 	authenticator authn.Authenticator
+}
+
+func (r *registryClient) GetName() string {
+	return r.registryName
 }
 
 func (r *registryClient) GetImage(imgName string) (v1.Image, error) {
@@ -37,17 +47,22 @@ func (r *registryClient) GetImage(imgName string) (v1.Image, error) {
 	return remote.Image(ref, remote.WithAuth(r.authenticator))
 }
 
-func (r *registryClient) Upload(img v1.Image, imageName string) error {
+func (r *registryClient) Upload(img v1.Image, imageName string) (bool, error) {
 	exists, ref, err := r.ImageExists(imageName)
-	if exists {
-		return nil
-	}
-
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	return remote.Write(ref, img, remote.WithAuth(r.authenticator))
+	if exists {
+		return false, nil
+	}
+
+	err = remote.Write(ref, img, remote.WithAuth(r.authenticator))
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 func (r *registryClient) ImageExists(imageName string) (bool, name.Reference, error) {
@@ -61,9 +76,10 @@ func (r *registryClient) ImageExists(imageName string) (bool, name.Reference, er
 		terr, _ := err.(*transport.Error)
 		for _, ec := range terr.Errors {
 			if ec.Code == transport.ManifestUnknownErrorCode {
-				return false, nil, nil
+				return false, ref, nil
 			}
 		}
+		return false, nil, err
 	}
 
 	return true, ref, nil
