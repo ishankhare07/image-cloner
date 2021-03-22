@@ -1,6 +1,8 @@
 package repo
 
 import (
+	"os"
+
 	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/spf13/viper"
 )
@@ -23,14 +25,19 @@ var PrivateRepoConfig DockerRegistryConfig
 func init() {
 	viper.SetConfigName("config")
 	viper.AddConfigPath("$PWD/config/")
-	err := viper.ReadInConfig()
-	if err != nil {
-		panic(err)
+	viper.AutomaticEnv()
+
+	if val, ok := os.LookupEnv("DEV_MODE"); ok && val == "ON" {
+		err := viper.ReadInConfig()
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	uri := viper.GetString("DOCKER_REGISTRY_URI")
 	if uri == "" {
-		panic("private registry uri not configured!")
+		//panic("private registry uri not configured!")
+		uri = "index.docker.io"
 	}
 
 	username := viper.GetString("DOCKER_REGISTRY_USERNAME")
