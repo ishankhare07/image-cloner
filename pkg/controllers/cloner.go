@@ -29,6 +29,9 @@ func Cloner(logger logr.Logger, containers []v1.Container) (bool, reconcile.Resu
 		var client registry.Client
 		var ok bool
 
+		// use a mutext because the pool map is being shared by both
+		// deployment and daemonset reconcilers
+		PoolLock.Lock()
 		if client, ok = UpstreamRegistryPool[registryInfo.GetNameForClient()]; !ok {
 			logger.Info("client does not exist", "repo", registryInfo.GetNameForClient())
 			logger.Info("creating one now")
@@ -37,6 +40,7 @@ func Cloner(logger logr.Logger, containers []v1.Container) (bool, reconcile.Resu
 			UpstreamRegistryPool[registryInfo.GetNameForClient()] = client
 			logger.Info("successfully created client", "repo", registryInfo.GetNameForClient())
 		}
+		PoolLock.Unlock()
 
 		img, err := client.GetImage(registryInfo.GetImageName())
 		if err != nil {

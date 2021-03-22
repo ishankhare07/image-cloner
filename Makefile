@@ -5,4 +5,4 @@ cluster:
 clean:
 	kind delete cluster --name image-cloner-test
 run:
-	go run main.go
+	go run -race main.go
