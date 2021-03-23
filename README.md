@@ -44,7 +44,7 @@ $ IMG="<your_registry/username>" make push
 $ IMG="<your_registry/username>" make deploy
 ```
 
-### User existing registry image
+### Use existing registry image
 If you are okay with using the current image on the public dockerhub, just go ahead and deploy:
 ```shell
 $ make deploy
