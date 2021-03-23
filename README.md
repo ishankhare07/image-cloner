@@ -1,5 +1,6 @@
 # image-cloner
 A k8s controller which watches the applications and caches the images by re-uploading to our own registry and re-configures the applications to use these copies.
+[![asciicast](https://asciinema.org/a/401567.svg)](https://asciinema.org/a/401567)
 
 ### Prerequisits
 1. A cluster is required, it can be a managed cluster like GKE etc. or a local `kind` or `minikube` cluster.  
