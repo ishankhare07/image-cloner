@@ -14,7 +14,7 @@ func Cloner(logger logr.Logger, containers []v1.Container) (bool, reconcile.Resu
 	// in which case the workload object has to be reloaded
 	updated := false
 	for i, container := range containers {
-		logger.Info("init container", "image", container.Image)
+		logger.Info("container", "image", container.Image)
 
 		registryInfo := registry.ExtractRegistryInfo(container.Image)
 
